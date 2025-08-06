@@ -1,0 +1,639 @@
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice - {{orderId}}</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      padding: 0;
+      color: #2d3748;
+      line-height: 1.2;
+      font-size: 12px;
+    }
+
+    .invoice-container {
+      max-width: 750px;
+      margin: 0 auto;
+      background: #ffffff;
+      position: relative;
+    }
+
+    .invoice-header {
+      background: #C5A572;
+      color: white;
+      padding: 20px;
+      margin-bottom: 0;
+    }
+
+    .header-row {
+      display: table;
+      width: 100%;
+    }
+
+    .header-left {
+      display: table-cell;
+      width: 65%;
+      vertical-align: middle;
+    }
+
+    .header-right {
+      display: table-cell;
+      width: 35%;
+      vertical-align: middle;
+      text-align: right;
+    }
+
+    .logo-section {
+      display: table;
+      width: 100%;
+    }
+
+    .logo {
+      display: table-cell;
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      text-align: center;
+      vertical-align: middle;
+      margin-right: 15px;
+    }
+
+    .logo img {
+      max-width: 40px;
+      max-height: 40px;
+      border-radius: 3px;
+    }
+
+    .company-info {
+      display: table-cell;
+      vertical-align: middle;
+      padding-left: 15px;
+    }
+
+    .company-info h1 {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 3px;
+      color: #ffd700;
+    }
+
+    .company-info p {
+      font-size: 13px;
+      opacity: 0.9;
+      margin: 0;
+    }
+
+    .invoice-meta h2 {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: white;
+    }
+
+    .meta-info {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .meta-info div {
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+
+    .meta-info strong {
+      font-weight: bold;
+    }
+
+    .payment-method-badge {
+      color: black;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .invoice-body {
+      padding: 20px;
+    }
+
+    .info-grid {
+      display: table;
+      width: 100%;
+      margin-bottom: 20px;
+      border-collapse: separate;
+      border-spacing: 10px;
+    }
+
+    .info-grid-row {
+      display: table-row;
+    }
+
+    .section-card {
+      display: table-cell;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      vertical-align: top;
+      width: 33.33%;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #2d3748;
+      margin-bottom: 8px;
+      border-bottom: 2px solid #C5A572;
+      padding-bottom: 3px;
+    }
+
+    .info-block p {
+      margin-bottom: 3px;
+      color: #4a5568;
+      line-height: 1.3;
+      font-size: 11px;
+    }
+
+    .info-block strong {
+      font-weight: bold;
+      color: #2d3748;
+    }
+
+    .payment-info {
+      background: #e6fffa !important;
+      border: 1px solid #38b2ac !important;
+    }
+
+    .payment-info .section-title {
+      color: #2c7a7b;
+      border-bottom-color: #38b2ac;
+    }
+
+    .payment-detail {
+      display: table;
+      width: 100%;
+      margin-bottom: 5px;
+    }
+
+    .payment-detail span:first-child {
+      display: table-cell;
+      font-weight: bold;
+      width: 45%;
+      font-size: 10px;
+    }
+
+    .payment-detail span:last-child {
+      display: table-cell;
+      text-align: right;
+      font-size: 10px;
+    }
+
+    .transaction-id {
+      font-family: 'Courier New', monospace;
+      background: #f0fffe;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-weight: bold;
+      color: #2c7a7b;
+      font-size: 10px;
+    }
+
+    .items-table {
+      margin: 20px 0;
+    }
+
+    .items-table .section-title {
+      margin-bottom: 10px;
+    }
+
+    .table-modern {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    .table-modern thead {
+      background: #C5A572;
+    }
+
+    .table-modern thead th {
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 8px 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .table-modern thead th:last-child {
+      text-align: right;
+    }
+
+    .table-modern thead th:nth-child(2),
+    .table-modern thead th:nth-child(4) {
+      text-align: center;
+    }
+
+    .table-modern tbody td {
+      padding: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+      font-size: 11px;
+    }
+
+    .table-modern tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-modern tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .item-name {
+      font-weight: bold;
+      color: #2d3748;
+    }
+
+    .price-cell {
+      font-weight: bold;
+      color: #38a169;
+      font-family: 'Courier New', monospace;
+      text-align: right;
+    }
+
+    .quantity-cell {
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .gst-badge {
+      background: #fef5e7;
+      color: #d69e2e;
+      padding: 1px 4px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    .gst-cell {
+      text-align: center;
+    }
+
+    .summary-section {
+      background: #f7fafc;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 20px;
+      border-top: 2px solid #38a169;
+    }
+
+    .summary-section .section-title {
+      border-bottom-color: #38a169;
+      margin-bottom: 12px;
+    }
+
+    .summary-row {
+      display: table;
+      width: 100%;
+      padding: 4px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 2px solid #38a169;
+    }
+
+    .summary-label {
+      display: table-cell;
+      font-weight: bold;
+      color: #4a5568;
+      width: 70%;
+      font-size: 11px;
+    }
+
+    .summary-value {
+      display: table-cell;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      color: #2d3748;
+      text-align: right;
+      width: 30%;
+      font-size: 11px;
+    }
+
+    .total-row .summary-label,
+    .total-row .summary-value {
+      font-size: 14px;
+      font-weight: bold;
+      color: #38a169;
+    }
+
+    .invoice-footer {
+      background: #f8fafc;
+      padding: 15px 20px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+      margin-top: 15px;
+    }
+
+    .footer-content {
+      display: table;
+      width: 100%;
+    }
+
+    .footer-info {
+      display: table-cell;
+      text-align: left;
+      vertical-align: middle;
+      width: 70%;
+    }
+
+    .footer-info h6 {
+      color: #4a5568;
+      font-weight: bold;
+      margin-bottom: 3px;
+      font-size: 13px;
+    }
+
+    .footer-info p {
+      color: #718096;
+      font-size: 11px;
+      margin: 1px 0;
+    }
+
+    .status-badge {
+      display: table-cell;
+      text-align: right;
+      vertical-align: middle;
+      width: 30%;
+    }
+
+    .status-badge-inner {
+      background: #48bb78;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-weight: bold;
+      display: inline-block;
+      font-size: 11px;
+    }
+
+    /* Print optimizations */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+
+      .invoice-container {
+        box-shadow: none;
+        border-radius: 0;
+        max-width: 100%;
+      }
+
+      .invoice-header {
+        background: #C5A572 !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+
+      .table-modern thead {
+        background: #C5A572 !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+
+      .section-card {
+        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+
+      .payment-info {
+        background: #e6fffa !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+
+      .summary-section {
+        background: #f7fafc !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+    }
+
+    /* Ensure colors work in PDF */
+    .color-preserve {
+      -webkit-print-color-adjust: exact;
+      color-adjust: exact;
+    }
+
+    /* Single page constraint */
+    @page {
+      size: A4;
+      margin: 0.4in;
+    }
+
+    .invoice-container {
+      page-break-inside: avoid;
+    }
+
+    .items-table {
+      page-break-inside: avoid;
+    }
+
+    .summary-section {
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="invoice-container color-preserve">
+    <!-- Header Section -->
+    <div class="invoice-header color-preserve">
+      <div class="header-row">
+        <div class="header-left">
+          <div class="logo-section">
+            <div class="logo">
+              <img src="https://i.postimg.cc/5ythBY8h/logo.png" alt="CollectorsCart Logo" />
+            </div>
+            <div class="company-info">
+              <h1>CollectorsCart</h1>
+              <p>Premium Collectibles & Numismatic Solutions</p>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="invoice-meta">
+            <h2>INVOICE</h2>
+            <div class="meta-info">
+              <div><strong>Order ID:</strong> #{{orderId}}</div>
+              <div><strong>Date:</strong> {{orderDate}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body Section -->
+    <div class="invoice-body">
+      <!-- Address and Payment Information -->
+      <div class="info-grid">
+        <div class="info-grid-row">
+          <div class="section-card color-preserve">
+            <div class="section-title">
+              📍 From (Seller)
+            </div>
+            <div class="info-block">
+              <p><strong>Coinnnote</strong></p>
+              <p>Thiruvasagam Salai, Balaji Nagar,</p>
+              <p>Pattabiram, Chennai - 600072</p>
+              <p>Tamil Nadu, India</p>
+            </div>
+          </div>
+
+          <div class="section-card color-preserve">
+            <div class="section-title">
+              👤 Bill To (Customer)
+            </div>
+            <div class="info-block">
+              <p><strong>{{name}}</strong></p>
+              <p>{{email}}</p>
+              <p>{{phone}}</p>
+              <p>{{address}}</p>
+            </div>
+          </div>
+
+          <div class="section-card payment-info color-preserve">
+            <div class="section-title">
+              💳 Payment Information
+            </div>
+            <div class="payment-detail">
+              <span><strong>Method:</strong></span>
+              <span class="payment-method-badge">{{paymentMethod}}</span>
+            </div>
+            <div class="payment-detail">
+              <span><strong>Transaction ID:</strong></span>
+              <span class="transaction-id">{{transactionId}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="items-table">
+        <div class="section-title">
+          📦 Order Items
+        </div>
+        <table class="table-modern color-preserve">
+          <thead class="color-preserve">
+            <tr>
+              <th>📦 Item</th>
+              <th>#️⃣ Qty</th>
+              <th>🏷️ Unit Price</th>
+              <th>📊 GST</th>
+              <th>💰 Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each items}}
+            <tr>
+              <td class="item-name">{{name}}</td>
+              <td class="quantity-cell">{{quantity}}</td>
+              <td class="price-cell">₹{{price}}</td>
+              <td class="gst-cell">
+                <span class="gst-badge">{{gst}}%</span>
+              </td>
+              <td class="price-cell">₹{{totalPrice}}</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Summary Section -->
+      <div class="summary-section color-preserve">
+        <div class="section-title">
+          🧾 Payment Summary
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-label">
+            📋 Subtotal
+          </div>
+          <div class="summary-value">₹{{subtotal}}</div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-label">
+            📊 SGST (9%)
+          </div>
+          <div class="summary-value">₹{{halfGST}}</div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-label">
+            📊 CGST (9%)
+          </div>
+          <div class="summary-value">₹{{halfGST}}</div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-label">
+            🏷️ Discount
+          </div>
+          <div class="summary-value">-₹{{discount}}</div>
+        </div>
+
+        <div class="summary-row">
+          <div class="summary-label">
+            🚚 Shipping
+          </div>
+          <div class="summary-value">₹{{shipping}}</div>
+        </div>
+
+        <div class="summary-row total-row">
+          <div class="summary-label">
+            💵 Total Amount
+          </div>
+          <div class="summary-value">₹{{totalAmount}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Section -->
+    <div class="invoice-footer color-preserve">
+      <div class="footer-content">
+        <div class="footer-info">
+          <h6>Thank you for your business!</h6>
+          <p>For any queries, contact us at support@collectorscart.com</p>
+          <p>Visit us: www.collectorscart.com</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

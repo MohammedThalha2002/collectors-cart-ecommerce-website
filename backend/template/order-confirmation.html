@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Order #{{orderId}} confirmed</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background:#fafafa; }
+    .card { background:#fff; border:1px solid #e5e5e5; border-radius:6px; max-width:600px; margin:auto; padding:30px; }
+    h1 { font-size:22px; margin-top:0; }
+    .row { display:flex; justify-content:space-between; margin:4px 0; }
+    .label { font-weight:bold; }
+    .items { margin-top:20px; }
+    .items th { text-align:left; border-bottom:1px solid #ddd; padding:8px 4px; }
+    .items td { padding:8px 4px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hi {{name}}, thanks for your order!</h1>
+    <p>Order <strong>#{{orderId}}</strong> has been placed successfully. You can track its progress anytime.</p>
+
+    <h3>Delivery Address</h3>
+    <p>{{address}}<br>{{phone}}</p>
+
+    <h3>Items Ordered</h3>
+    <table class="items" width="100%">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each items}}
+        <tr>
+          <td>
+            {{productName}}
+            {{#if birthdayDate}}<br><small>Birthday: {{birthdayDate}}</small>{{/if}}
+          </td>
+          <td>{{quantity}}</td>
+          <td>₹{{price}}</td>
+          <td>₹{{total}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <h3>Amount Summary</h3>
+    <div class="row"><span class="label">Subtotal:</span><span> ₹{{subtotal}}</span></div>
+    <div class="row"><span class="label">Discount:</span><span> ₹{{discount}}</span></div>
+    <div class="row"><span class="label">GST:</span><span> ₹{{totalGST}}</span></div>
+    <div class="row"><span class="label">Shipping:</span><span> ₹{{shipping}}</span></div>
+    <div class="row"><strong>Grand Total:</strong><strong>  ₹{{totalAmount}}</strong></div>
+
+    <p style="margin-top:30px">Payment ID: <strong>{{transactionId}}</strong></p>
+    <p>Estimated Delivery Date: <strong>7 Days from ordering</strong></p>
+    <p>If you have any questions, reply to this e-mail or call us.</p>
+
+    <p>Thank you for shopping with us!</p>
+  </div>
+</body>
+</html>
