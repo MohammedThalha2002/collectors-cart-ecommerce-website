@@ -1,8 +1,8 @@
-# 🪙 CoinNnote - Rare Collections E-commerce Platform
+# 🛒 CollectorsCart - Rare Collections E-commerce Platform
 
 A premium e-commerce platform specialized in rare collectibles, coins, and vintage items. Built with modern web technologies to provide a seamless shopping experience for collectors and enthusiasts.
 
-![CoinNnote Banner](https://coinnnote.com)
+![CollectorsCart Banner](https://collectorscart.com)
 
 ## 🌟 Features
 
@@ -72,7 +72,7 @@ A premium e-commerce platform specialized in rare collectibles, coins, and vinta
 ## 📁 Project Structure
 
 ```
-coinNnote/
+collectorscart/
 ├── client/                 # Customer-facing React application
 │   ├── src/
 │   │   ├── components/     # Reusable UI components
@@ -108,7 +108,7 @@ coinNnote/
 
    ```bash
    git clone https://github.com/MohammedThalha2002/rare-collections-ecommerce-website.git
-   cd coinNnote
+   cd collectorscart
    ```
 
 2. **Install Backend Dependencies**
@@ -141,7 +141,7 @@ coinNnote/
    DB_HOST=localhost
    DB_USER=your_mysql_user
    DB_PASSWORD=your_mysql_password
-   DB_NAME=coinnnote_db
+   DB_NAME=collectorscart_db
 
    # JWT Secret
    JWT_SECRET=your_jwt_secret_key
@@ -171,18 +171,16 @@ coinNnote/
 
 6. **Database Setup**
 
-   ```bash
+   ````bash
    # Create MySQL database
    mysql -u root -p
-   CREATE DATABASE coinnnote_db;
+   CREATE DATABASE collectorscart_db;
 
    # The tables will be created automatically when you start the backend
-   ```
-
-7. **Start Redis Server**
+   ```7. **Start Redis Server**
    ```bash
    redis-server
-   ```
+   ````
 
 ### Running the Application
 
@@ -267,7 +265,7 @@ This project is licensed under the ISC License. See the [LICENSE](LICENSE) file 
 **Mohammed Thalha**
 
 - GitHub: [@MohammedThalha2002](https://github.com/MohammedThalha2002)
-- Website: [coinnnote.com](https://coinnnote.com)
+- Website: [collectorscart.com](https://collectorscart.com)
 
 ## 🙏 Acknowledgments
 
@@ -281,8 +279,8 @@ This project is licensed under the ISC License. See the [LICENSE](LICENSE) file 
 For support and questions:
 
 - Create an issue on GitHub
-- Email: support@coinnnote.com
-- Website: [coinnnote.com](https://coinnnote.com)
+- Email: support@collectorscart.com
+- Website: [collectorscart.com](https://collectorscart.com)
 
 ---
 
