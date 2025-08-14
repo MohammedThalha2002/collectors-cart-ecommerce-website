@@ -8,8 +8,8 @@ import metricsRouter from "./controller/orders/metricsController.js";
 import logger from "./config/logger.js";
 import morgan from "morgan";
 import dotenv from "dotenv";
-import "./config/db.js";
 import admin from "./config/firebase.js";
+import "./config/db.js";
 
 dotenv.config();
 

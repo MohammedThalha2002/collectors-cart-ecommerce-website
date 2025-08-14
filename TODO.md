@@ -49,8 +49,8 @@
 - [x] Adding watermark in image upload
 - [x] Birthday notes handling in product
 - [x] Remove total from the add order request body
-- [ ] Product id field in product upload
-- [ ] Check excel and invoice export in real device
+- [x] Product id field in product upload
+- [x] Check excel and invoice export in real device
 - [x] First time admin order failing check
 - [ ] Low stock notifications cron job
   - [x] Currently added once the user purchases a product
@@ -66,7 +66,7 @@
 - [x] Alter login page with new ui
 - [x] Handle product quantity selection based on stock availability
 - [x] Change primary theme color
-- [ ] Handle product id in product upload
+- [x] Handle product id in product upload
 - [x] Show proper dialog content on order
 - [x] Low stock notifications after user purchases a product
 - [x] Handling role based views for admin
@@ -148,3 +148,5 @@
   - [x] Order status Payment pending, Processing, Completed/Shipped, Cancelled
   - [x] Update tracking number in the order
   - [x] Handle backpress in homepage - dont go to login page
+  - [ ] After updating a product search/results are not properly showing
+  - [ ] Image removed on update show the update button - should be hidden

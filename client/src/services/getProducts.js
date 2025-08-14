@@ -42,6 +42,17 @@ export async function getProducts(currentPage, filters, limit) {
   }
 }
 
+export async function getAllCategories() {
+  try {
+    const res = await axios.get(import.meta.env.VITE_API_URL + `/categories`);
+    return res.data;
+  } catch (err) {
+    const error = err.response.data.error.message;
+    console.log(error);
+    return [];
+  }
+}
+
 export async function getAllSubCategories() {
   try {
     const res = await axios.get(

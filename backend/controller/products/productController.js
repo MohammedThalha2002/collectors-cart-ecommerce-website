@@ -1,6 +1,6 @@
 import Category from "../../model/category.js";
 import Product from "../../model/product.js";
-import { Op } from "sequelize";
+import { Op, ValidationError } from "sequelize";
 import SubCategory from "../../model/subCategory.js";
 import Queue from "bull";
 import User from "../../model/user.js";
@@ -15,6 +15,7 @@ export const addProduct = async (req, res) => {
 
   let info = {
     name: data.name,
+    productId: data.productId,
     description: data.description,
     images: data.images,
     costPrice: data.costPrice,
@@ -37,9 +38,19 @@ export const addProduct = async (req, res) => {
       message: "Product added successfully",
     }); // Send the created product as the response
   } catch (error) {
-    console.error("Error adding product:", error);
+    let message = "Something went wrong";
+
+    if (error instanceof ValidationError) {
+      error.errors.forEach((error) => {
+        if (error.validatorKey === "not_unique") {
+          message =
+            "Please enter a unique productId. This productId is already taken.";
+        }
+      });
+    }
+
     res.status(400).json({
-      message: "Failed to add the product",
+      message: "Failed to add the product. " + message,
     });
   }
 };
@@ -50,6 +61,7 @@ export const addProducts = async (req, res) => {
   data.forEach(async (product) => {
     let info = {
       name: product.name,
+      productId: product.productId,
       description: product.description,
       images: product.images,
       costPrice: product.costPrice,
@@ -81,8 +93,19 @@ export const addProducts = async (req, res) => {
     }); // Send the created product as the response
   } catch (error) {
     console.error("Error adding product:", error);
+    let message = "Something went wrong";
+
+    if (error instanceof ValidationError) {
+      error.errors.forEach((error) => {
+        if (error.validatorKey === "not_unique") {
+          message =
+            "Please enter a unique productId. This productId is already taken.";
+        }
+      });
+    }
+
     res.status(400).json({
-      message: "Failed to add the product",
+      message: "Failed to add the product. " + message,
     });
   }
 };
@@ -100,7 +123,7 @@ export const updateProductById = async (req, res) => {
 
   let info = {
     productUrl: `${process.env.CLIENT_URL}/collections/${product.id}`,
-    productId: product.id,
+    productId: data.productId,
     name: data.name,
     description: data.description,
     images: data.images,
@@ -139,7 +162,20 @@ export const updateProductById = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json("Failed to update the product");
+    let message = "Something went wrong";
+
+    if (error instanceof ValidationError) {
+      error.errors.forEach((error) => {
+        if (error.validatorKey === "not_unique") {
+          message =
+            "Please enter a unique productId. This productId is already taken.";
+        }
+      });
+    }
+
+    res.status(400).json({
+      message: "Failed to update the product. " + message,
+    });
   }
 };
 
@@ -188,8 +224,13 @@ export const getProducts = async (req, res) => {
 
   // Searching
   if (req.query.search) {
-    const search = req.query.search.trim().replace(/[%_]/g, "\\$&");
+    const search = req.query.search
+      .toLowerCase()
+      .trim()
+      .replace(/[%_]/g, "\\$&");
+
     match[Op.or] = [
+      isAdmin ? { productId: { [Op.like]: `%${search}%` } } : null,
       { name: { [Op.like]: `%${search}%` } },
       { description: { [Op.like]: `%${search}%` } },
       { continent: { [Op.like]: `%${search}%` } },
@@ -216,7 +257,6 @@ export const getProducts = async (req, res) => {
       match.sellingPrice = {
         [Op.between]: [minPrice, maxPrice],
       };
-      sort.push(["sellingPrice", "ASC"]);
     }
   }
 
@@ -227,12 +267,6 @@ export const getProducts = async (req, res) => {
       [Op.lte]: lowStockThreshold,
     };
     sort.push(["inStock", "ASC"]);
-  }
-
-  // By created date
-  if (req.query.sortByDate) {
-    const sortOrder = req.query.sortByDate;
-    sort.push(["createdAt", sortOrder]);
   }
 
   try {

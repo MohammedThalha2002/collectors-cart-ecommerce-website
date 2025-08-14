@@ -85,7 +85,7 @@ import {
   notifyStockUsers,
 } from "../controller/products/productController.js";
 
-router.post("/product", moderatorValidate, addProduct);
+router.post("/product", addProduct);
 
 router.post("/products", moderatorValidate, addProducts);
 
@@ -113,12 +113,19 @@ import {
   getSubCategoriesByCategory,
   deleteSubCategory,
   getAllSubCategories,
+  getCategoriesWithSubcategoriesAndCounts,
+  getCategoryWithProductCount,
+  getSubCategoryWithProductCount,
 } from "../controller/category/categoryController.js";
 
 // category routes
 router.post("/category", adminValidate, addCategory);
 
 router.get("/categories", getAllCategories);
+
+router.get("/categories/with-counts", getCategoriesWithSubcategoriesAndCounts);
+
+router.get("/categories/:categoryId/count", getCategoryWithProductCount);
 
 router.delete("/categories/:id", adminValidate, deleteCategory);
 
@@ -128,6 +135,8 @@ router.post("/subcategory", adminValidate, addSubCategory);
 router.get("/subcategories/:categoryId", getSubCategoriesByCategory);
 
 router.get("/subcategories", getAllSubCategories);
+
+router.get("/subcategory/:subCategoryId/count", getSubCategoryWithProductCount);
 
 router.delete("/subcategories/:id", adminValidate, deleteSubCategory);
 

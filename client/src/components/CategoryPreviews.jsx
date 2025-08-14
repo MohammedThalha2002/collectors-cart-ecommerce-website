@@ -107,7 +107,7 @@ function CategoryPreviews() {
               </div>
               <div className="text-left">
                 <div className="font-bold text-gray-800">Secure Shipping</div>
-                <div className="text-sm text-gray-600">Worldwide Delivery</div>
+                <div className="text-sm text-gray-600">India-wide Delivery</div>
               </div>
             </div>
             <div className="flex items-center justify-center space-x-3">

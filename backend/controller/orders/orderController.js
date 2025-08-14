@@ -2,6 +2,8 @@ import Order from "../../model/order.js";
 import OrderItem from "../../model/orderItem.js";
 import User from "../../model/user.js";
 import Product from "../../model/product.js";
+import Category from "../../model/category.js";
+import SubCategory from "../../model/subCategory.js";
 import Queue from "bull";
 import { generateInvoice } from "./invoiceController.js";
 import ExcelJS from "exceljs";
@@ -369,52 +371,249 @@ export const exportOrdersToExcel = async (req, res) => {
       );
     }
 
+    // Fetch orders with all related data
     const orders = await Order.findAll({
       where: {
-        createdAt: { [Op.between]: [startDate, endDate] },
+        createdAt: {
+          [Op.between]: [startDate, endDate],
+        },
       },
       include: [
         {
+          model: OrderItem,
+          include: [
+            {
+              model: Product,
+              attributes: [
+                "id",
+                "name",
+                "costPrice",
+                "sellingPrice",
+                "gst",
+                "tags",
+                "continent",
+                "country",
+              ],
+              include: [
+                {
+                  model: Category,
+                  attributes: ["name"],
+                },
+                {
+                  model: SubCategory,
+                  attributes: ["name"],
+                },
+              ],
+            },
+          ],
+        },
+        {
           model: User,
-          attributes: ["name", "phone", "address", "city", "state", "pincode"],
+          attributes: ["id", "name", "email", "phone"],
         },
       ],
       order: [["createdAt", "DESC"]],
     });
 
+    // Create a new workbook and worksheet
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Orders");
+    const worksheet = workbook.addWorksheet("Orders Report");
 
+    // Set up columns with headers
     worksheet.columns = [
       { header: "Order ID", key: "orderId", width: 15 },
+      { header: "Order Date", key: "orderDate", width: 20 },
       { header: "Payment ID", key: "paymentId", width: 20 },
-      { header: "Delivery Status", key: "deliveryStatus", width: 20 },
-      { header: "Customer Name", key: "deliveryName", width: 20 },
-      { header: "Customer Phone", key: "deliveryPhone", width: 20 },
-      { header: "Customer Address", key: "deliveryAddress", width: 30 },
-      { header: "Ordered Date", key: "orderedDate", width: 20 },
-      { header: "Total", key: "total", width: 10 },
+      { header: "Payment Method", key: "paymentMethod", width: 15 },
+      { header: "Delivery Status", key: "deliveryStatus", width: 15 },
+      { header: "Tracking Number", key: "trackingNumber", width: 20 },
+      { header: "Delivery Name", key: "deliveryName", width: 20 },
+      { header: "Delivery Phone", key: "deliveryPhone", width: 15 },
+      { header: "Delivery Address", key: "deliveryAddress", width: 40 },
+      { header: "Order Discount (₹)", key: "discount", width: 18 },
+      { header: "Order Total (₹)", key: "orderTotal", width: 15 },
+      { header: "Order Profit (₹)", key: "orderProfit", width: 18 },
+      { header: "Product Name", key: "productName", width: 30 },
+      { header: "Product Category", key: "productCategory", width: 20 },
+      { header: "Product SubCategory", key: "productSubCategory", width: 20 },
+      { header: "Quantity", key: "quantity", width: 10 },
+      { header: "Unit Price (₹)", key: "unitPrice", width: 15 },
+      { header: "Cost Price (₹)", key: "costPrice", width: 15 },
+      { header: "Total Item Price (₹)", key: "totalItemPrice", width: 18 },
+      { header: "GST Rate (%)", key: "gstRate", width: 12 },
+      { header: "GST Amount (₹)", key: "gstAmount", width: 15 },
+      { header: "Birthday Date", key: "birthdayDate", width: 15 },
     ];
 
-    for (const order of orders) {
-      const orderDate = `${order.createdAt.getDate()}/${
-        order.createdAt.getMonth() + 1
-      }/${order.createdAt.getFullYear()}`;
-      const address = order.user
-        ? `${order.user.address}, ${order.user.city}, ${order.user.state} - ${order.user.pincode}`
-        : "N/A";
-      const data = {
-        orderId: order.orderId,
-        paymentId: order.paymentId,
-        orderedDate: orderDate,
-        total: order.total,
-        deliveryStatus: order.deliveryStatus,
-        deliveryName: order.deliveryName,
-        deliveryPhone: order.deliveryPhone,
-        deliveryAddress: address,
-      };
-      worksheet.addRow(data);
-    }
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFF" } };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "366092" },
+    };
+    headerRow.alignment = { horizontal: "center", vertical: "middle" };
+
+    // Add data rows
+    let rowIndex = 2;
+    orders.forEach((order) => {
+      if (order.OrderItems && order.OrderItems.length > 0) {
+        // Calculate order-level profit
+        let orderProfit = 0;
+        order.OrderItems.forEach((item) => {
+          const gstAmount =
+            ((item.price * (item.Product?.gst || 0)) / 100) * item.quantity;
+          const totalItemPrice = item.price * item.quantity;
+          const costPrice = item.Product?.costPrice || 0;
+          const itemProfit =
+            totalItemPrice - costPrice * item.quantity - gstAmount;
+          orderProfit += itemProfit;
+        });
+
+        // Create rows for each order item
+        order.OrderItems.forEach((item, index) => {
+          const gstAmount =
+            ((item.price * (item.Product?.gst || 0)) / 100) * item.quantity;
+          const totalItemPrice = item.price * item.quantity;
+          const costPrice = item.Product?.costPrice || 0;
+
+          const row = worksheet.addRow({
+            // Order details only in the first row
+            orderId: index === 0 ? order.orderId : "",
+            orderDate:
+              index === 0
+                ? order.createdAt
+                  ? new Date(order.createdAt).toLocaleDateString("en-IN")
+                  : ""
+                : "",
+            paymentId: index === 0 ? order.paymentId : "",
+            paymentMethod: index === 0 ? order.paymentMethod : "",
+            deliveryStatus: index === 0 ? order.deliveryStatus : "",
+            trackingNumber:
+              index === 0 ? order.trackingNumber || "Not Assigned" : "",
+            deliveryName: index === 0 ? order.deliveryName : "",
+            deliveryPhone: index === 0 ? order.deliveryPhone : "",
+            deliveryAddress: index === 0 ? order.deliveryAddress : "",
+            discount: index === 0 ? order.discount : "",
+            orderTotal: index === 0 ? order.total : "",
+            orderProfit: index === 0 ? orderProfit.toFixed(2) : "",
+            // Product details in every row
+            productName: item.Product?.name || "Product Not Found",
+            productCategory: item.Product?.Category?.name || "N/A",
+            productSubCategory: item.Product?.SubCategory?.name || "N/A",
+            quantity: item.quantity,
+            unitPrice: item.price,
+            costPrice: costPrice,
+            totalItemPrice: totalItemPrice,
+            gstRate: item.Product?.gst || 0,
+            gstAmount: gstAmount.toFixed(2),
+            birthdayDate: item.birthdayDate
+              ? new Date(item.birthdayDate).toLocaleDateString("en-IN")
+              : "N/A",
+          });
+
+          // Style based on delivery status (only for first row)
+          if (index === 0) {
+            const statusColors = {
+              pending: "FFEB3B",
+              processing: "2196F3",
+              shipped: "4CAF50",
+              cancelled: "F44336",
+            };
+
+            const statusColor =
+              statusColors[order.deliveryStatus.toLowerCase()] || "FFFFFF";
+            row.getCell("deliveryStatus").fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: statusColor },
+            };
+          }
+
+          rowIndex++;
+        });
+      }
+    });
+
+    // Add summary section
+    const summaryStartRow = rowIndex + 2;
+    worksheet.addRow([]);
+
+    // Summary headers
+    const summaryHeaderRow = worksheet.addRow(["SUMMARY STATISTICS"]);
+    summaryHeaderRow.font = { bold: true, size: 14 };
+    summaryHeaderRow.getCell(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "4CAF50" },
+    };
+
+    // Calculate summary statistics
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const totalDiscount = orders.reduce(
+      (sum, order) => sum + order.discount,
+      0
+    );
+    const ordersByStatus = orders.reduce((acc, order) => {
+      acc[order.deliveryStatus] = (acc[order.deliveryStatus] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Add summary data
+    worksheet.addRow(["Total Orders:", totalOrders]);
+    worksheet.addRow(["Total Revenue (₹):", totalRevenue]);
+    worksheet.addRow(["Total Discounts (₹):", totalDiscount]);
+    worksheet.addRow([
+      "Date Range:",
+      `${startDate.toLocaleDateString("en-IN")} to ${endDate.toLocaleDateString(
+        "en-IN"
+      )}`,
+    ]);
+
+    worksheet.addRow([]);
+    worksheet.addRow(["Orders by Status:"]);
+    Object.entries(ordersByStatus).forEach(([status, count]) => {
+      worksheet.addRow([`${status}:`, count]);
+    });
+
+    // Add borders and formatting
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell, colNumber) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+
+        // Format currency cells
+        if (
+          [
+            "unitPrice",
+            "costPrice",
+            "totalItemPrice",
+            "gstAmount",
+            "discount",
+            "orderTotal",
+            "orderProfit",
+          ].includes(worksheet.getColumn(colNumber).key)
+        ) {
+          if (!isNaN(cell.value) && cell.value !== null) {
+            cell.numFmt = "₹#,##0.00";
+          }
+        }
+      });
+    });
+
+    // Auto-fit columns
+    worksheet.columns.forEach((column) => {
+      column.width = Math.max(column.width || 10, 10);
+    });
+
+    // Add freeze panes for header
+    worksheet.views = [{ state: "frozen", xSplit: 0, ySplit: 1 }];
 
     res.setHeader(
       "Content-Disposition",
@@ -511,58 +710,58 @@ const processOrder = async (job) => {
     console.error("Error sending order email:", error);
   }
 
-  // const payload = {
-  //   notification: {
-  //     title: "Order Placed 📦",
-  //     body: "New order has been placed by " + order.deliveryName,
-  //   },
-  //   topic: "admins",
-  // };
+  const payload = {
+    notification: {
+      title: "Order Placed 📦",
+      body: "New order has been placed by " + order.deliveryName,
+    },
+    topic: "admins",
+  };
 
-  // admin
-  //   .messaging()
-  //   .send(payload)
-  //   .then((response) => {
-  //     console.log("Order Notification sent successfully:", response);
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error sending notification:", error);
-  //   });
+  admin
+    .messaging()
+    .send(payload)
+    .then((response) => {
+      console.log("Order Notification sent successfully:", response);
+    })
+    .catch((error) => {
+      console.error("Error sending notification:", error);
+    });
 
-  // // check for low stock products and if exists send a notification to admins
-  // const lowStockProducts = await Product.findAll({
-  //   where: {
-  //     inStock: {
-  //       [Op.lt]: 2, // Assuming low stock is defined as less than 2 items
-  //     },
-  //   },
-  // });
+  // check for low stock products and if exists send a notification to admins
+  const lowStockProducts = await Product.findAll({
+    where: {
+      inStock: {
+        [Op.lt]: 2, // Assuming low stock is defined as less than 2 items
+      },
+    },
+  });
 
-  // // Send the product names in the notification
-  // const productNames = lowStockProducts
-  //   .map((product) => product.name)
-  //   .join(", ");
+  // Send the product names in the notification
+  const productNames = lowStockProducts
+    .map((product) => product.name)
+    .join(", ");
 
-  // if (lowStockProducts.length > 0) {
-  //   const payload = {
-  //     notification: {
-  //       title: "Low Stock Alert 🚨",
-  //       body:
-  //         "The following products are running low on stock: " + productNames,
-  //     },
-  //     topic: "admins",
-  //   };
+  if (lowStockProducts.length > 0) {
+    const payload = {
+      notification: {
+        title: "Low Stock Alert 🚨",
+        body:
+          "The following products are running low on stock: " + productNames,
+      },
+      topic: "admins",
+    };
 
-  //   admin
-  //     .messaging()
-  //     .send(payload)
-  //     .then((response) => {
-  //       console.log("Low stock Notification sent successfully:", response);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error sending notification:", error);
-  //     });
-  // }
+    admin
+      .messaging()
+      .send(payload)
+      .then((response) => {
+        console.log("Low stock Notification sent successfully:", response);
+      })
+      .catch((error) => {
+        console.error("Error sending notification:", error);
+      });
+  }
 };
 
 orderQueue.process(processOrder);

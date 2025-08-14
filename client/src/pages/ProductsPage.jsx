@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import NavBar from "../components/shared/navbar/NavBar";
 import Footer from "../components/shared/Footer";
-import { getAllSubCategories, getProducts } from "../services/getProducts";
+import {
+  getAllCategories,
+  getAllSubCategories,
+  getProducts,
+} from "../services/getProducts";
 import ProductCard from "../components/ProductCard";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import categories from "../static/categories";
 import continents from "../static/continents";
 import countries from "../static/countries";
 import ScrollToTop from "../components/shared/others/ScrollToTop";
@@ -19,16 +22,13 @@ const ProductsPage = () => {
   const { categoryId, subcategoryId, searchQuery } = useParams();
   const navigate = useNavigate();
 
-  const initialCategory = categories.find(
-    (cat) => cat.id === parseInt(categoryId)
-  );
-  const initialSubCategory = subcategoryId;
-
   const itemsPerPageOptions = [12, 24, 36];
 
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [priceRangeChanged, setPriceRangeChanged] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(itemsPerPageOptions[0]);
@@ -53,23 +53,43 @@ const ProductsPage = () => {
     : countries.slice(0, 10);
 
   useEffect(() => {
-    // Set initial category if available
-    if (initialCategory) {
-      setSelectedCategories([initialCategory]);
-    }
-    getAllSubCategories().then((data) => {
-      setSubCategories(data);
-      if (initialSubCategory) {
-        const subCat = data.find(
-          (sub) => sub.id === parseInt(initialSubCategory)
-        );
-        if (subCat) {
-          setSelectedSubCategories([subCat]);
-        }
-      }
-    });
-  }, []);
+    // Load categories and subcategories, then set initial selections
+    const loadData = async () => {
+      try {
+        // Load categories with product counts
+        const categoriesData = await getAllCategories();
+        setCategories(categoriesData);
 
+        // Load subcategories with product counts
+        const subCategoriesData = await getAllSubCategories();
+        setSubCategories(subCategoriesData);
+
+        // Set initial category if available
+        if (categoryId) {
+          const initialCategory = categoriesData.find(
+            (cat) => cat.id === parseInt(categoryId)
+          );
+          if (initialCategory) {
+            setSelectedCategories([initialCategory]);
+          }
+        }
+
+        // Set initial subcategory if available
+        if (subcategoryId) {
+          const initialSubCategory = subCategoriesData.find(
+            (sub) => sub.id === parseInt(subcategoryId)
+          );
+          if (initialSubCategory) {
+            setSelectedSubCategories([initialSubCategory]);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading categories and subcategories:", error);
+      }
+    };
+
+    loadData();
+  }, [categoryId, subcategoryId]);
   useEffect(() => {
     fetchProducts();
   }, [
@@ -98,22 +118,35 @@ const ProductsPage = () => {
 
   const dispatch = useDispatch();
 
-  function fetchProducts() {
+  function fetchProducts(priceChanged) {
     const filters = {
-      continent: selectedContinent ? selectedContinent : null,
-      country: selectedCountry ? selectedCountry : null,
-      categoryIds: selectedCategories.map((cat) => cat.id).join(","),
-      subCategoryIds: selectedSubCategories.map((sub) => sub.id).join(","),
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-      sortByPrice: sortOption.includes("price")
-        ? sortOption.split("-")[1] === "high"
-          ? "DESC"
-          : "ASC"
-        : null,
       sortByDate: sortOption === "newest" ? "DESC" : "ASC",
-      search: search,
     };
+    if (selectedContinent) {
+      filters.continent = selectedContinent;
+    }
+    if (selectedCountry) {
+      filters.country = selectedCountry;
+    }
+    if (selectedCategories.length > 0) {
+      filters.categoryIds = selectedCategories.map((cat) => cat.id).join(",");
+    }
+    if (selectedSubCategories.length > 0) {
+      filters.subCategoryIds = selectedSubCategories
+        .map((sub) => sub.id)
+        .join(",");
+    }
+    if (sortOption.includes("price")) {
+      filters.sortByPrice =
+        sortOption.split("-")[1] === "high" ? "DESC" : "ASC";
+    }
+    if (search) {
+      filters.search = search;
+    }
+    if (priceChanged || priceRangeChanged) {
+      filters.minPrice = priceRange[0];
+      filters.maxPrice = priceRange[1];
+    }
 
     getProducts(currentPage, filters, itemsPerPage).then((data) => {
       setProducts(data.data);
@@ -125,16 +158,19 @@ const ProductsPage = () => {
     const newRange = [...priceRange];
     newRange[index] = parseInt(e.target.value, 10);
     setPriceRange(newRange);
+    setPriceRangeChanged(true);
   };
 
   const handleCategoryChange = (category) => {
-    if (selectedCategories.includes(category)) {
-      setSelectedCategories(selectedCategories.filter((c) => c !== category));
+    if (selectedCategories.some((c) => c.id === category.id)) {
+      setSelectedCategories(
+        selectedCategories.filter((c) => c.id !== category.id)
+      );
     } else {
       setSelectedCategories([...selectedCategories, category]);
     }
 
-    // clear subcategroies if its category is unselected
+    // clear subcategories if its category is unselected
     if (selectedSubCategories.some((sub) => sub.Category.id === category.id)) {
       setSelectedSubCategories(
         selectedSubCategories.filter((sub) => sub.Category.id !== category.id)
@@ -143,9 +179,9 @@ const ProductsPage = () => {
   };
 
   const handleSubCategoryChange = (subCategory) => {
-    if (selectedSubCategories.includes(subCategory)) {
+    if (selectedSubCategories.some((sc) => sc.id === subCategory.id)) {
       setSelectedSubCategories(
-        selectedSubCategories.filter((sc) => sc !== subCategory)
+        selectedSubCategories.filter((sc) => sc.id !== subCategory.id)
       );
     } else {
       setSelectedSubCategories([...selectedSubCategories, subCategory]);
@@ -166,6 +202,7 @@ const ProductsPage = () => {
     setSelectedContinent("");
     setSelectedCountry("");
     setPriceRange([0, 10000]);
+    setPriceRangeChanged(false);
   };
 
   const handleSortChange = (e) => {
@@ -250,7 +287,7 @@ const ProductsPage = () => {
                 <div className="flex items-center space-x-6 mt-4">
                   <div className="flex items-center text-sm text-gray-600">
                     <i className="fas fa-cubes text-gold mr-2"></i>
-                    <span className="font-semibold">1000+</span>
+                    <span className="font-semibold">{productsMeta.total}+</span>
                     <span className="ml-1">Items</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
@@ -376,25 +413,32 @@ const ProductsPage = () => {
                               <div className="relative">
                                 <input
                                   type="checkbox"
-                                  checked={selectedCategories.includes(
-                                    category
+                                  checked={selectedCategories.some(
+                                    (c) => c.id === category.id
                                   )}
                                   onChange={() =>
                                     handleCategoryChange(category)
                                   }
                                   className="form-checkbox text-gold rounded border-2 border-gray-300 focus:ring-gold transition-colors"
                                 />
-                                {selectedCategories.includes(category) && (
+                                {selectedCategories.some(
+                                  (c) => c.id === category.id
+                                ) && (
                                   <i className="fas fa-check absolute inset-0 flex items-center justify-center text-white text-xs pointer-events-none"></i>
                                 )}
                               </div>
                               <span className="ml-3 font-medium text-gray-700 group-hover:text-gold transition-colors">
                                 {category.name}
+                                <span className="text-gray-400 ml-1">
+                                  ({category.productCount || 0})
+                                </span>
                               </span>
                             </label>
 
                             {/* Subcategories */}
-                            {selectedCategories.includes(category) && (
+                            {selectedCategories.some(
+                              (c) => c.id === category.id
+                            ) && (
                               <div className="ml-6 pl-4 border-l-2 border-gold/20 space-y-2">
                                 {subCategories
                                   .filter(
@@ -408,22 +452,25 @@ const ProductsPage = () => {
                                       <div className="relative">
                                         <input
                                           type="checkbox"
-                                          checked={selectedSubCategories.includes(
-                                            subCategory
+                                          checked={selectedSubCategories.some(
+                                            (sc) => sc.id === subCategory.id
                                           )}
                                           onChange={() =>
                                             handleSubCategoryChange(subCategory)
                                           }
                                           className="form-checkbox text-maroon rounded border-2 border-gray-300 focus:ring-maroon transition-colors"
                                         />
-                                        {selectedSubCategories.includes(
-                                          subCategory
+                                        {selectedSubCategories.some(
+                                          (sc) => sc.id === subCategory.id
                                         ) && (
                                           <i className="fas fa-check absolute inset-0 flex items-center justify-center text-white text-xs pointer-events-none"></i>
                                         )}
                                       </div>
                                       <span className="ml-3 text-sm text-gray-600 group-hover:text-maroon transition-colors">
-                                        {subCategory.name}
+                                        {subCategory.name}{" "}
+                                        <span className="text-gray-400">
+                                          ({subCategory.productCount || 0})
+                                        </span>
                                       </span>
                                     </label>
                                   ))}
@@ -496,7 +543,9 @@ const ProductsPage = () => {
                         </div>
 
                         <button
-                          onClick={fetchProducts}
+                          onClick={() => {
+                            fetchProducts(true);
+                          }}
                           className="w-full bg-gradient-to-r from-gold to-gold/90 text-white py-2 px-4 rounded-lg font-medium transition-all duration-300 hover:shadow-lg transform hover:scale-105"
                         >
                           <i className="fas fa-search mr-2"></i>
@@ -554,13 +603,7 @@ const ProductsPage = () => {
                                 {continent}
                               </span>
                               <div className="text-xs text-gray-500 mt-1">
-                                {
-                                  countries.filter((country) => {
-                                    // You might need to add continent mapping logic here
-                                    return true; // Placeholder
-                                  }).length
-                                }{" "}
-                                countries
+                                Multiple countries available
                               </div>
                             </div>
                             {selectedContinent === continent && (
@@ -656,6 +699,7 @@ const ProductsPage = () => {
                         <button
                           onClick={() => {
                             setPriceRange([0, 1000]);
+                            setPriceRangeChanged(true);
                             fetchProducts();
                           }}
                           className="p-2 text-xs border border-gray-300 rounded-lg hover:border-gold hover:bg-gold/5 transition-all duration-200"
@@ -665,6 +709,7 @@ const ProductsPage = () => {
                         <button
                           onClick={() => {
                             setPriceRange([1000, 5000]);
+                            setPriceRangeChanged(true);
                             fetchProducts();
                           }}
                           className="p-2 text-xs border border-gray-300 rounded-lg hover:border-gold hover:bg-gold/5 transition-all duration-200"
@@ -674,6 +719,7 @@ const ProductsPage = () => {
                         <button
                           onClick={() => {
                             setPriceRange([5000, 25000]);
+                            setPriceRangeChanged(true);
                             fetchProducts();
                           }}
                           className="p-2 text-xs border border-gray-300 rounded-lg hover:border-gold hover:bg-gold/5 transition-all duration-200"
@@ -683,6 +729,7 @@ const ProductsPage = () => {
                         <button
                           onClick={() => {
                             setPriceRange([25000, 100000]);
+                            setPriceRangeChanged(true);
                             fetchProducts();
                           }}
                           className="p-2 text-xs border border-gray-300 rounded-lg hover:border-gold hover:bg-gold/5 transition-all duration-200"
@@ -919,7 +966,7 @@ const ProductsPage = () => {
                             showToast(toast, "success", "Added to cart");
                           }}
                           isBirthdayNote={
-                            data.SubCategory.name == "Birthday Notes"
+                            data.SubCategory?.name == "Birthday Notes"
                           }
                           showDateDialog={() => {
                             setSelectedProduct(data);

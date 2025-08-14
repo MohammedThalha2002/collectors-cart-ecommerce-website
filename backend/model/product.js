@@ -10,6 +10,21 @@ const Product = sequelize.define("Product", {
     allowNull: false,
     primaryKey: true,
   },
+  productId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: {
+      msg: "Product ID must be unique. This Product ID already exists.",
+    },
+    validate: {
+      notEmpty: {
+        msg: "Product ID cannot be empty",
+      },
+      isAlphanumeric: {
+        msg: "Product ID can only contain letters and numbers",
+      },
+    },
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,

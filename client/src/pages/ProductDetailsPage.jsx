@@ -160,15 +160,25 @@ const ProductDetailsPage = () => {
               </Link>
               <i className="fas fa-chevron-right text-gray-400 text-xs flex-shrink-0"></i>
               <Link
-                to={"/collections"}
+                to={"/collections/category/" + product?.Category?.id}
                 className="text-gray-600 hover:text-yellow-600 transition-colors font-medium whitespace-nowrap truncate max-w-20 sm:max-w-none"
               >
                 {product?.Category?.name}
               </Link>
               <i className="fas fa-chevron-right text-gray-400 text-xs flex-shrink-0"></i>
-              <span className="text-gray-600 font-medium whitespace-nowrap truncate max-w-24 sm:max-w-none">
-                {product?.SubCategory?.name}
-              </span>
+              <Link
+                to={
+                  "/collections/category/" +
+                  product?.Category?.id +
+                  "/subcategory/" +
+                  product?.SubCategory?.id
+                }
+              >
+                <span className="text-gray-600 hover:text-yellow-600 transition-colors font-medium whitespace-nowrap truncate max-w-24 sm:max-w-none">
+                  {product?.SubCategory?.name}
+                </span>
+              </Link>
+
               <i className="fas fa-chevron-right text-gray-400 text-xs flex-shrink-0"></i>
               <span className="text-yellow-600 font-semibold whitespace-nowrap truncate max-w-32 sm:max-w-none">
                 {product?.name}
@@ -196,7 +206,7 @@ const ProductDetailsPage = () => {
                         <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-r from-yellow-400 to-red-900 rounded-xl md:rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
                         <div className="relative aspect-square rounded-xl md:rounded-2xl overflow-hidden bg-gray-50 shadow-xl border border-gray-200">
                           <img
-                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full bg-black object-contain object-center group-hover:scale-105 transition-transform duration-500"
                             src={
                               import.meta.env.VITE_IMAGE_URL +
                               product.images[selectedImage]
@@ -239,17 +249,45 @@ const ProductDetailsPage = () => {
                       <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl md:rounded-2xl p-4 md:p-6 border border-gray-100">
                         <div className="flex items-start justify-between mb-4 md:mb-6">
                           <div className="flex-1 pr-4">
-                            <div className="flex items-center space-x-2 md:space-x-3 mb-3 md:mb-4">
-                              <span
-                                className={`text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-1 md:py-2 rounded-full shadow-md ${
-                                  product.tags[0] === "Ultra Rare"
-                                    ? "bg-gradient-to-r from-red-900 to-red-800"
-                                    : "bg-gradient-to-r from-yellow-400 to-yellow-500"
-                                }`}
-                              >
-                                <i className="fas fa-star mr-1"></i>
-                                {product.tags[0]}
-                              </span>
+                            <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                              {product.tags &&
+                                product.tags.map((tag, index) => {
+                                  // Random color assignment - predefined beautiful gradients
+                                  const tagStyles = [
+                                    "bg-gradient-to-r from-red-500 to-pink-500",
+                                    "bg-gradient-to-r from-purple-500 to-indigo-500",
+                                    "bg-gradient-to-r from-blue-500 to-cyan-500",
+                                    "bg-gradient-to-r from-green-500 to-emerald-500",
+                                    "bg-gradient-to-r from-yellow-500 to-orange-500",
+                                    "bg-gradient-to-r from-pink-500 to-rose-500",
+                                    "bg-gradient-to-r from-indigo-500 to-purple-500",
+                                    "bg-gradient-to-r from-cyan-500 to-blue-500",
+                                    "bg-gradient-to-r from-emerald-500 to-teal-500",
+                                    "bg-gradient-to-r from-orange-500 to-red-500",
+                                    "bg-gradient-to-r from-violet-500 to-purple-500",
+                                    "bg-gradient-to-r from-amber-500 to-yellow-500",
+                                    "bg-gradient-to-r from-lime-500 to-green-500",
+                                    "bg-gradient-to-r from-sky-500 to-blue-500",
+                                    "bg-gradient-to-r from-rose-500 to-pink-500",
+                                  ];
+
+                                  // Use index to ensure consistent colors for same position tags
+                                  const getRandomTagStyle = (index) => {
+                                    return tagStyles[index % tagStyles.length];
+                                  };
+
+                                  return (
+                                    <span
+                                      key={index}
+                                      className={`text-white text-xs font-medium px-2 md:px-3 py-1 rounded-full shadow-sm ${getRandomTagStyle(
+                                        index
+                                      )}`}
+                                    >
+                                      <i className="fas fa-star mr-1 text-xs"></i>
+                                      {tag}
+                                    </span>
+                                  );
+                                })}
                             </div>
 
                             <h1 className="text-2xl md:text-4xl font-serif font-bold mb-2 md:mb-3 text-gray-800 leading-tight">

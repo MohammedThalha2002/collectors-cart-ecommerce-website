@@ -1,3 +1,5 @@
 node_modules
 .env
 Uploads
+./config/serviceAccountKey.json
+./app.log

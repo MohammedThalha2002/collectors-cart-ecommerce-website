@@ -1,6 +1,7 @@
 import Category from "../../model/category.js";
 import SubCategory from "../../model/subCategory.js";
 import Product from "../../model/product.js";
+import sequelize from "../../config/db.js";
 
 export const addCategory = async (req, res) => {
   const { name } = req.body;
@@ -33,7 +34,21 @@ export const addCategory = async (req, res) => {
 export const getAllCategories = async (req, res) => {
   try {
     const categories = await Category.findAll();
-    res.status(200).json(categories);
+
+    // Add product counts to each category
+    const categoriesWithCounts = await Promise.all(
+      categories.map(async (category) => {
+        const productCount = await Product.count({
+          where: { categoryId: category.id },
+        });
+        return {
+          ...category.toJSON(),
+          productCount,
+        };
+      })
+    );
+
+    res.status(200).json(categoriesWithCounts);
   } catch (error) {
     console.error("Error fetching categories:", error);
     res.status(500).json("Failed to fetch categories");
@@ -151,7 +166,20 @@ export const getSubCategoriesByCategory = async (req, res) => {
       ],
     });
 
-    res.status(200).json(subCategories);
+    // Add product counts to each subcategory
+    const subCategoriesWithCounts = await Promise.all(
+      subCategories.map(async (subCategory) => {
+        const productCount = await Product.count({
+          where: { subCategoryId: subCategory.id },
+        });
+        return {
+          ...subCategory.toJSON(),
+          productCount,
+        };
+      })
+    );
+
+    res.status(200).json(subCategoriesWithCounts);
   } catch (error) {
     console.error("Error fetching subcategories by category:", error);
     res.status(500).json({
@@ -170,10 +198,145 @@ export const getAllSubCategories = async (req, res) => {
         },
       ],
     });
-    res.status(200).json(subCategories);
+
+    // Add product counts to each subcategory
+    const subCategoriesWithCounts = await Promise.all(
+      subCategories.map(async (subCategory) => {
+        const productCount = await Product.count({
+          where: { subCategoryId: subCategory.id },
+        });
+        return {
+          ...subCategory.toJSON(),
+          productCount,
+        };
+      })
+    );
+
+    res.status(200).json(subCategoriesWithCounts);
   } catch (error) {
     console.error("Error fetching subcategories:", error);
     res.status(500).json("Failed to fetch subcategories");
+  }
+};
+
+export const getCategoriesWithSubcategoriesAndCounts = async (req, res) => {
+  try {
+    // Get all categories
+    const categories = await Category.findAll({
+      include: [
+        {
+          model: SubCategory,
+          required: false, // LEFT JOIN to include categories without subcategories
+        },
+      ],
+    });
+
+    // Add product counts to each category and subcategory
+    const categoriesWithCounts = await Promise.all(
+      categories.map(async (category) => {
+        // Count total products in this category
+        const totalProductCount = await Product.count({
+          where: { categoryId: category.id },
+        });
+
+        // Add product counts to subcategories
+        const subCategoriesWithCounts = await Promise.all(
+          category.SubCategories.map(async (subCategory) => {
+            const productCount = await Product.count({
+              where: { subCategoryId: subCategory.id },
+            });
+            return {
+              ...subCategory.toJSON(),
+              productCount,
+            };
+          })
+        );
+
+        return {
+          ...category.toJSON(),
+          totalProductCount,
+          SubCategories: subCategoriesWithCounts,
+        };
+      })
+    );
+
+    res.status(200).json(categoriesWithCounts);
+  } catch (error) {
+    console.error(
+      "Error fetching categories with subcategories and counts:",
+      error
+    );
+    res.status(500).json({
+      message: "Failed to fetch categories with subcategories and counts",
+    });
+  }
+};
+
+export const getCategoryWithProductCount = async (req, res) => {
+  const { categoryId } = req.params;
+
+  try {
+    // Get the category
+    const category = await Category.findByPk(categoryId);
+
+    if (!category) {
+      return res.status(404).json({
+        message: "Category not found",
+      });
+    }
+
+    // Count products in this category
+    const productCount = await Product.count({
+      where: { categoryId: categoryId },
+    });
+
+    res.status(200).json({
+      ...category.toJSON(),
+      productCount,
+    });
+  } catch (error) {
+    console.error("Error fetching category with product count:", error);
+    res.status(500).json({
+      message: "Failed to fetch category with product count",
+    });
+  }
+};
+
+export const getSubCategoryWithProductCount = async (req, res) => {
+  const { subCategoryId } = req.params;
+
+  try {
+    // Get the subcategory with its category
+    const subCategory = await SubCategory.findOne({
+      where: { id: subCategoryId },
+      include: [
+        {
+          model: Category,
+          attributes: ["id", "name"],
+        },
+      ],
+    });
+
+    if (!subCategory) {
+      return res.status(404).json({
+        message: "Subcategory not found",
+      });
+    }
+
+    // Count products in this subcategory
+    const productCount = await Product.count({
+      where: { subCategoryId: subCategoryId },
+    });
+
+    res.status(200).json({
+      ...subCategory.toJSON(),
+      productCount,
+    });
+  } catch (error) {
+    console.error("Error fetching subcategory with product count:", error);
+    res.status(500).json({
+      message: "Failed to fetch subcategory with product count",
+    });
   }
 };
 
