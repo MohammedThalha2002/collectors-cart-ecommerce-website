@@ -1,6 +1,6 @@
 # 🛒 CollectorsCart - Rare Collections E-commerce Platform
 
-A premium e-commerce platform specialized in rare collectibles, coins, and vintage items. Built with modern web technologies to provide a seamless shopping experience for collectors and enthusiasts. Also added github deployment using Github actions.
+A premium e-commerce platform specialized in rare collectibles, coins, and vintage items. Built with modern web technologies to provide a seamless shopping experience for collectors and enthusiasts. Also added ci/cd using Github actions.
 
 ![CollectorsCart Banner](https://collectorscart.com)
 
