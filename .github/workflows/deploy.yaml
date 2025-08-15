@@ -22,4 +22,6 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash /var/www/collectors-cart-ecommerce-website/deploy.sh"
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "bash /var/www/collectors-cart-ecommerce-website/deploy.sh"
