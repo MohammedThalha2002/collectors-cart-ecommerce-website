@@ -1,2 +1,5 @@
 dump.rdb
+.secrets
 backend/app.log
+backend/serviceAccountKey.json
+backend/.env

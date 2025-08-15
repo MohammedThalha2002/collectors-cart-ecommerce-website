@@ -2,6 +2,8 @@ import path from "path";
 import fs from "fs-extra";
 import hbs from "handlebars";
 import html_to_pdf from "html-pdf-node";
+import dotenv from "dotenv";
+dotenv.config();
 
 const compile = async function (data) {
   const filePath = path.join(process.cwd(), "template", "invoice.hbs");
@@ -58,7 +60,7 @@ export const generateInvoice = async (data) => {
     console.log("PDF GENERATED");
 
     const fileName = data.orderId + ".pdf";
-    const pdfPath = `Uploads/Invoices/${fileName}`;
+    const pdfPath = `${process.env.INVOICE_UPLOAD_PATH}/${fileName}`;
     fs.writeFileSync(pdfPath, pdfBuffer);
     return {
       message: "Invoice Saved Successfully",

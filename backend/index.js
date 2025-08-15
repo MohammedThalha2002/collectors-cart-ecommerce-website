@@ -19,9 +19,18 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use("/Uploads/Images", express.static("./Uploads/Images"));
-app.use("/Uploads/test_images", express.static("./Uploads/test_images"));
-app.use("/Uploads/Invoices", express.static("./Uploads/Invoices"));
+app.use(
+  `/${process.env.IMAGE_UPLOAD_PATH}`,
+  express.static(`./${process.env.IMAGE_UPLOAD_PATH}`)
+);
+app.use(
+  `/${process.env.INVOICE_UPLOAD_PATH}`,
+  express.static(`./${process.env.INVOICE_UPLOAD_PATH}`)
+);
+app.use(
+  `/${process.env.TEST_IMAGE_UPLOAD_PATH}`,
+  express.static(`./${process.env.TEST_IMAGE_UPLOAD_PATH}`)
+);
 
 const morganFormat = ":method :url :status :response-time ms";
 app.use(
@@ -48,7 +57,6 @@ app.use("/mail", mailRouter);
 app.use("/metrics", metricsRouter);
 
 app.get("/", (req, res) => {
-  console.log("GET REQ");
   res.send("GETTING REQUEST SUCCESSFULLY");
 });
 

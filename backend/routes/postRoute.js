@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import sharp from "sharp";
 import fs from "fs";
+import dotenv from "dotenv";
 import {
   superAdminValidate,
   checkRole,
@@ -10,13 +11,14 @@ import {
   moderatorValidate,
   adminValidate,
 } from "../middleware/validation.js";
+dotenv.config();
 
 const router = express.Router();
 
 // IMAGE UPLOAD
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "Uploads/Images");
+    cb(null, process.env.IMAGE_UPLOAD_PATH);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -27,9 +29,9 @@ const upload = multer({ storage: storage });
 
 router.post("/img-upload", upload.single("image"), async (req, res) => {
   try {
-    const tempPath = `Uploads/Images/${req.file.filename}`;
+    const tempPath = `${process.env.IMAGE_UPLOAD_PATH}/${req.file.filename}`;
     const watermarkPath = "./template/watermark.png";
-    const outputPath = `Uploads/Images/img-${req.file.filename}`;
+    const outputPath = `${process.env.IMAGE_UPLOAD_PATH}/img-${req.file.filename}`;
 
     const image = sharp(tempPath);
     const metadata = await image.metadata();
