@@ -95,7 +95,9 @@
     - video banner - no access
     - analytics - no access | remove analytics from home page
   - [x] Logout from super admin and login as moderator shows the admin section in side nav
-  - [ ] Remove logs
+  - [x] Search product and edit and update/onBack search products not updated
+  - [x] Error handling in product upload
+  - [x] Remove logs
 
 ## Addons
 
@@ -148,5 +150,5 @@
   - [x] Order status Payment pending, Processing, Completed/Shipped, Cancelled
   - [x] Update tracking number in the order
   - [x] Handle backpress in homepage - dont go to login page
-  - [ ] After updating a product search/results are not properly showing
+  - [x] After updating a product search/results are not properly showing
   - [ ] Image removed on update show the update button - should be hidden

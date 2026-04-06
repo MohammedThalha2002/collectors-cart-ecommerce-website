@@ -275,14 +275,14 @@ export const getOrdersByUsers = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const orderId = req.params.id;
-    const { status } = req.body;
+    const { deliveryStatus } = req.body;
 
     const order = await Order.findByPk(orderId);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    order.deliveryStatus = status;
+    order.deliveryStatus = deliveryStatus;
     await order.save();
 
     res.status(200).json({

@@ -242,6 +242,12 @@ export const getProducts = async (req, res) => {
 
   //  --------------------- Sorting --------------------------
 
+  // By Date
+  if (req.query.sortByDate) {
+    const sortOrder = req.query.sortByDate;
+    sort.push(["createdAt", sortOrder]);
+  }
+
   // By price
   if (req.query.sortByPrice) {
     const sortOrder = req.query.sortByPrice;

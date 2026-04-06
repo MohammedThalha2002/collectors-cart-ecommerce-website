@@ -87,7 +87,7 @@ import {
   notifyStockUsers,
 } from "../controller/products/productController.js";
 
-router.post("/product", addProduct);
+router.post("/product", moderatorValidate, addProduct);
 
 router.post("/products", moderatorValidate, addProducts);
 
@@ -219,7 +219,7 @@ import {
 } from "../controller/orders/analyticsController.js";
 import admin from "../config/firebase.js";
 
-router.get("/analytics/weeklysales", adminValidate, weeklySalesReport);
+router.get("/analytics/weeklysales", weeklySalesReport);
 
 router.get("/analytics/monthlysales", adminValidate, monthlySalesReport);
 
