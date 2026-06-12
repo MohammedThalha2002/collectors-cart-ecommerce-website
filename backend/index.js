@@ -82,6 +82,6 @@ app.get("/test-notification", async (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async() => {
   console.log(`Listening to the PORT : ` + PORT);
 });
